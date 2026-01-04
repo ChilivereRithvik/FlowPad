@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Save, Trash } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import {
   ReactFlow,
@@ -11,8 +12,8 @@ import {
   type EdgeChange,
   type Connection,
   MiniMap,
-  Background,
-  Controls,
+  // Background,
+  // Controls,
   useReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
@@ -24,6 +25,7 @@ import DecisionNode from "./components/nodes/DecisionNode";
 import EndNode from "./components/nodes/EndNode";
 import CustomNode from "./components/nodes/CustomNode";
 import BottomDock from "./components/BottomDock";
+import { Button } from "./components/ui/button";
 import PropertiesPanel from "./components/PropertiesPanel";
 
 import {
@@ -250,14 +252,33 @@ function FlowBuilder() {
         {/* <Controls className="!bg-white/80 dark:!bg-gray-800/80 !border-2 !border-gray-300 dark:!border-gray-600 !rounded-lg" /> */}
       </ReactFlow>
 
+      <div className="fixed top-4 right-4 z-50 flex gap-2">
+        <Button
+          onClick={handleSave}
+          className="border hover:bg-gray-100 dark:hover:bg-gray-800"
+          variant="outline"
+        >
+          <Save className="w-4 h-4" />
+          Save
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleClear}
+          className="border hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-white hover:bg-red-500 dark:hover:text-gray-100"
+        >
+          <Trash className="w-4 h-4" />
+          Clear
+        </Button>
+      </div>
+
       <BottomDock
         onAddNode={addNode}
         onZoomIn={() => zoomIn({ duration: 300 })}
         onZoomOut={() => zoomOut({ duration: 300 })}
         onFitView={() => fitView({ duration: 300, padding: 0.2 })}
         onClear={handleClear}
-        onSave={handleSave}
         onLoad={handleLoad}
+        onSave={handleSave}
       />
 
       {selectedNode && (

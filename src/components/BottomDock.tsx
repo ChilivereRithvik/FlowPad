@@ -96,14 +96,14 @@ export default function BottomDock({
               </Tooltip>
 
               {/* Save */}
-              <Tooltip>
+              {/* <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" onClick={onSave}>
                     <span className="text-xs font-medium">Save</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Save Flow</TooltipContent>
-              </Tooltip>
+              </Tooltip> */}
             </div>
           </div>
         </div>
