@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Save, Trash } from "lucide-react";
+import { Home, Save, Trash } from "lucide-react";
 
 import { useState, useCallback, useEffect } from "react";
 
@@ -45,6 +45,7 @@ import {
 import RoughCanvasLayer from "./RoughCanvasLayer";
 import LeftDock from "@/components/LeftDock";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useNavigate } from "react-router-dom";
 
 const nodeTypes = {
   start: StartNode,
@@ -73,6 +74,7 @@ function getInitialState(): FlowState {
 }
 
 export function FlowBuilder() {
+  const navigate = useNavigate();
   const [nodes, setNodes] = useState<Node<CustomNodeData>[]>(
     () => getInitialState().nodes
   );
@@ -503,17 +505,17 @@ export function FlowBuilder() {
           </Button>
         </div>
       )}
-      {/* 
+
       <div className="fixed top-4 left-4 z-80">
         <Button
           variant="outline"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
           className="border hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2"
         >
           <Home className="w-4 h-4" />
-          <span>FlowPad</span>
+          {/* <span>FlowPad</span> */}
         </Button>
-      </div> */}
+      </div>
 
       <div className="fixed top-4 right-4 z-80 flex gap-2">
         <Button
