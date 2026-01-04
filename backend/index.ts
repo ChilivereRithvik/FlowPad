@@ -7,12 +7,15 @@ import { serve } from "@hono/node-server";
 import dotenv from "dotenv";
 import path from "path";
 
+import { db } from "./db";
+import { sql } from "drizzle-orm";
+
 // Only load .env in development
 if (process.env.NODE_ENV !== "production") {
   dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 }
 
-const app = new Hono().basePath("/api");
+const app = new Hono();
 
 app.use(
   "*",
@@ -26,14 +29,13 @@ app.use(
   })
 );
 
-app.on(["POST", "GET"], "/auth/*", (c) => {
+app.on(["POST", "GET"], "/api/auth/*", (c) => {
   return auth.handler(c.req.raw);
 });
 
-import { db } from "./db";
-import { sql } from "drizzle-orm";
+app.get("/", (c) => c.json({ status: "alive", message: "FlowPad Backend" }));
 
-app.get("/", async (c) => {
+app.get("/api", async (c) => {
   try {
     await db.execute(sql`SELECT 1`);
     return c.text("🤑 I am alive! and DB is Connected 🤩");
