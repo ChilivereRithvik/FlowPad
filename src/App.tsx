@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { FlowBuilder } from "./pages/flowpage";
 import HomePage from "./pages/HomePage";
 import NotFoundPage from "./pages/NotFoundPage";
+import ReadmePage from "./pages/ReadmePage";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
               </div>
             }
           />
+          <Route path="/readme" element={<ReadmePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>

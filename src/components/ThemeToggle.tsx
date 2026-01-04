@@ -27,7 +27,7 @@ export function ThemeToggle({
     <Button
       variant="outline"
       onClick={toggleTheme}
-      className="border hover:bg-gray-100 dark:hover:bg-gray-800"
+      className="border hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
     >
       {theme === "light" ? (
         <>

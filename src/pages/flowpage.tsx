@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Home, Save, Trash, Layers } from "lucide-react";
+import { Home, Save, Trash, Layers, Info } from "lucide-react";
 
 import { useState, useCallback, useEffect } from "react";
 
@@ -533,17 +533,26 @@ export function FlowBuilder() {
 
       <div className="fixed top-4 right-4 z-80 flex gap-2">
         <Button
+          onClick={() => navigate("/readme")}
+          className="border hover:bg-gray-100 dark:hover:bg-gray-800 px-3 cursor-pointer"
+          variant="outline"
+          title="Project Info"
+        >
+          <Info className="w-4 h-4" />
+        </Button>
+        <Button
           onClick={handleSave}
-          className="border hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="border hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
           variant="outline"
         >
           <Save className="w-4 h-4" />
           Save
         </Button>
+
         <Button
           variant="outline"
           onClick={handleClear}
-          className="border hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-white hover:bg-red-500 dark:hover:text-gray-100"
+          className="border hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-white hover:bg-red-500 dark:hover:text-gray-100 cursor-pointer"
         >
           <Trash className="w-4 h-4" />
           Clear
