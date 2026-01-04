@@ -1,6 +1,13 @@
-import { Fullscreen, Plus, Trash, ZoomIn, ZoomOut } from "lucide-react";
+import { Box, Fullscreen, Play, Trash, ZoomIn, ZoomOut } from "lucide-react";
 import type { NodeType } from "../types/flow";
 import { Button } from "./ui/button";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
 
 interface BottomDockProps {
   onAddNode: (type: NodeType) => void;
@@ -19,88 +26,88 @@ export default function BottomDock({
   onFitView,
   onClear,
   onSave,
+  onLoad,
 }: BottomDockProps) {
+  console.log(onLoad);
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up">
-      <div className="max-w-6xl mx-auto pb-6 w-fit">
-        <div className="glass-panel rounded-2xl p-2 w-fit border">
-          <div className="flex items-center justify-center  flex-wrap gap-1">
-            {/* Node Types Section */}
-            <div className="flex items-center gap-1">
-              <Button
-                onClick={() => onAddNode("custom")}
-                variant={"ghost"}
-                className="control-button"
-                title="Add Custom Node"
-              >
-                custom
-              </Button>
-              <Button
-                onClick={() => onAddNode("start")}
-                variant={"ghost"}
-                className="control-button"
-                title="Add Start Node"
-              >
-                start
-              </Button>
-            </div>
+    <TooltipProvider delayDuration={200}>
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="max-w-6xl mx-auto pb-6 w-fit">
+          <div className="glass-panel rounded-sm p-1 w-fit border">
+            <div className="flex items-center justify-center flex-wrap gap-1">
+              {/* Custom Node */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={() => onAddNode("custom")}>
+                    <Box />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Add Custom Node</TooltipContent>
+              </Tooltip>
 
-            {/* Canvas Controls */}
-            <div className="flex items-center gap-1">
-              <Button
-                onClick={onZoomIn}
-                className="control-button"
-                title="Zoom In"
-              >
-                <ZoomIn />
-              </Button>
+              {/* Start Node */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={() => onAddNode("start")}>
+                    <Play />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Add Start Node</TooltipContent>
+              </Tooltip>
 
-              <Button
-                onClick={onZoomOut}
-                className="control-button"
-                title="Zoom Out"
-              >
-                <ZoomOut />
-              </Button>
+              {/* Zoom In */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={onZoomIn}>
+                    <ZoomIn />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Zoom In</TooltipContent>
+              </Tooltip>
 
-              <Button
-                onClick={onFitView}
-                className="control-button"
-                title="Fit View"
-              >
-                <Fullscreen />
-              </Button>
+              {/* Zoom Out */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={onZoomOut}>
+                    <ZoomOut />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Zoom Out</TooltipContent>
+              </Tooltip>
 
-              <Button
-                onClick={onClear}
-                className="control-button bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400"
-                title="Clear Canvas"
-              >
-                <Trash />
-              </Button>
-            </div>
+              {/* Fit View */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={onFitView}>
+                    <Fullscreen />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Fit View</TooltipContent>
+              </Tooltip>
 
-            {/* Save/Load Controls */}
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={onSave}
-                className="control-button bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400"
-                title="Save Flow"
-              >
-                <span className="text-xs font-medium">Save</span>
-              </Button>
+              {/* Clear Canvas */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={onClear}>
+                    <Trash />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Clear Canvas</TooltipContent>
+              </Tooltip>
 
-              {/* <Button
-                onClick={onLoad}
-                className="control-button bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                title="Load Flow"
-              >
-                <span className="text-xs font-medium">Load</span>
-              </Button> */}
+              {/* Save */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={onSave}>
+                    <span className="text-xs font-medium">Save</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Save Flow</TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

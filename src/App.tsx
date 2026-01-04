@@ -26,6 +26,17 @@ import CustomNode from "./components/nodes/CustomNode";
 import BottomDock from "./components/BottomDock";
 import PropertiesPanel from "./components/PropertiesPanel";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./components/ui/alert-dialog";
+
 import type { NodeType, CustomNodeData, FlowState } from "./types/flow";
 
 const nodeTypes = {
@@ -47,6 +58,18 @@ function FlowBuilder() {
   const [selectedNode, setSelectedNode] = useState<Node<CustomNodeData> | null>(
     null
   );
+  const [alertDialog, setAlertDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onContinue?: () => void;
+    showCancel?: boolean;
+  }>({
+    open: false,
+    title: "",
+    description: "",
+    showCancel: true,
+  });
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   // Load saved flow on mount
@@ -142,17 +165,29 @@ function FlowBuilder() {
   }, []);
 
   const handleClear = useCallback(() => {
-    if (confirm("Are you sure you want to clear the entire canvas?")) {
-      setNodes([]);
-      setEdges([]);
-      setSelectedNode(null);
-    }
+    setAlertDialog({
+      open: true,
+      title: "Clear Canvas",
+      description:
+        "Are you sure you want to clear the entire canvas? This action cannot be undone.",
+      showCancel: true,
+      onContinue: () => {
+        setNodes([]);
+        setEdges([]);
+        setSelectedNode(null);
+      },
+    });
   }, []);
 
   const handleSave = useCallback(() => {
     const state: FlowState = { nodes, edges };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    alert("Flow saved successfully!");
+    setAlertDialog({
+      open: true,
+      title: "Flow Saved",
+      description: "Your flow has been saved successfully!",
+      showCancel: false,
+    });
   }, [nodes, edges]);
 
   const handleLoad = useCallback(() => {
@@ -164,13 +199,29 @@ function FlowBuilder() {
         setNodes(savedNodes);
         setEdges(savedEdges);
         setSelectedNode(null);
-        alert("Flow loaded successfully!");
+        setAlertDialog({
+          open: true,
+          title: "Flow Loaded",
+          description: "Your flow has been loaded successfully!",
+          showCancel: false,
+        });
       } catch (error) {
-        alert("Failed to load flow");
+        setAlertDialog({
+          open: true,
+          title: "Load Failed",
+          description:
+            "Failed to load flow data. The saved data might be corrupted.",
+          showCancel: false,
+        });
         console.error(error);
       }
     } else {
-      alert("No saved flow found");
+      setAlertDialog({
+        open: true,
+        title: "No Saved Flow",
+        description: "No saved flow was found in your local storage.",
+        showCancel: false,
+      });
     }
   }, []);
 
@@ -217,6 +268,28 @@ function FlowBuilder() {
           onDelete={deleteNode}
         />
       )}
+
+      <AlertDialog
+        open={alertDialog.open}
+        onOpenChange={(open) => setAlertDialog((prev) => ({ ...prev, open }))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{alertDialog.title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {alertDialog.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {alertDialog.showCancel && (
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+            )}
+            <AlertDialogAction onClick={alertDialog.onContinue}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
