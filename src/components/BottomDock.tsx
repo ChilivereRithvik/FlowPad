@@ -24,8 +24,6 @@ export default function BottomDock({
   onZoomIn,
   onZoomOut,
   onFitView,
-  onClear,
-  onSave,
   onLoad,
 }: BottomDockProps) {
   console.log(onLoad);
@@ -84,26 +82,6 @@ export default function BottomDock({
                 </TooltipTrigger>
                 <TooltipContent>Fit View</TooltipContent>
               </Tooltip>
-
-              {/* Clear Canvas */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" onClick={onClear}>
-                    <Trash />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Clear Canvas</TooltipContent>
-              </Tooltip>
-
-              {/* Save */}
-              {/* <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" onClick={onSave}>
-                    <span className="text-xs font-medium">Save</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Save Flow</TooltipContent>
-              </Tooltip> */}
             </div>
           </div>
         </div>
