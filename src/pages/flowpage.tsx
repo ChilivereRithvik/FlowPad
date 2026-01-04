@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Save, Trash } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -11,14 +11,17 @@ import {
   type NodeChange,
   type EdgeChange,
   type Connection,
-  MiniMap,
-  // Background,
-  // Controls,
   useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import type { NodeType, CustomNodeData, FlowState } from "@/types/flow";
+import type {
+  NodeType,
+  CustomNodeData,
+  FlowState,
+  Shape,
+  ToolMode,
+} from "@/types/flow";
 import StartNode from "@/components/nodes/StartNode";
 import ProcessNode from "@/components/nodes/ProcessNode";
 import DecisionNode from "@/components/nodes/DecisionNode";
@@ -37,6 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import RoughCanvasLayer from "./RoughCanvasLayer";
 
 const nodeTypes = {
   start: StartNode,
@@ -48,6 +52,7 @@ const nodeTypes = {
 
 const initialNodes: Node<CustomNodeData>[] = [];
 const initialEdges: Edge[] = [];
+const initialShapes: Shape[] = [];
 
 const STORAGE_KEY = "flowpad-state";
 
@@ -60,7 +65,7 @@ function getInitialState(): FlowState {
       console.error("Failed to load saved flow:", error);
     }
   }
-  return { nodes: initialNodes, edges: initialEdges };
+  return { nodes: initialNodes, edges: initialEdges, shapes: initialShapes };
 }
 
 export function FlowBuilder() {
@@ -68,10 +73,14 @@ export function FlowBuilder() {
     () => getInitialState().nodes
   );
   const [edges, setEdges] = useState<Edge[]>(() => getInitialState().edges);
+  const [shapes, setShapes] = useState<Shape[]>(
+    () => getInitialState().shapes || []
+  );
   const [selectedNode, setSelectedNode] = useState<Node<CustomNodeData> | null>(
     null
   );
-  // track an edge click action (id + click position)
+  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [tool, setTool] = useState<ToolMode>("none");
   const [edgeAction, setEdgeAction] = useState<{
     id: string;
     x: number;
@@ -91,12 +100,115 @@ export function FlowBuilder() {
   });
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
+  // History for undo/redo
+  const [_history, setHistory] = useState<FlowState[]>([]);
+
+  const saveToHistory = useCallback(() => {
+    setHistory((prev) => {
+      const newState = { nodes, edges, shapes };
+      // Limit history to 50 steps
+      const newHistory = [...prev, newState];
+      if (newHistory.length > 50) return newHistory.slice(1);
+      return newHistory;
+    });
+  }, [nodes, edges, shapes]);
+
+  const undo = useCallback(() => {
+    setHistory((prev) => {
+      if (prev.length === 0) return prev;
+      const lastState = prev[prev.length - 1];
+      if (!lastState) return prev;
+
+      setNodes(lastState.nodes);
+      setEdges(lastState.edges);
+      setShapes(lastState.shapes || []);
+      return prev.slice(0, -1);
+    });
+  }, []);
+
+  const updateShape = useCallback(
+    (id: string, updates: Partial<Shape>) => {
+      saveToHistory();
+      setShapes((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, ...updates } : s))
+      );
+    },
+    [saveToHistory]
+  );
+
+  const deleteShape = useCallback(
+    (id: string) => {
+      saveToHistory();
+      setShapes((prev) => prev.filter((s) => s.id !== id));
+      setSelectedShapeId(null);
+    },
+    [saveToHistory]
+  );
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+        e.preventDefault();
+        undo();
+      }
+
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedShapeId) {
+        if (
+          document.activeElement?.tagName !== "INPUT" &&
+          document.activeElement?.tagName !== "TEXTAREA"
+        ) {
+          deleteShape(selectedShapeId);
+        }
+      }
+
+      if (
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA"
+      ) {
+        switch (e.key.toLowerCase()) {
+          case "v":
+            setTool("select");
+            break;
+          case "h":
+            setTool("hand");
+            break;
+          case "r":
+            setTool("rectangle");
+            break;
+          case "t":
+            setTool("triangle");
+            break;
+          case "c":
+            setTool("circle");
+            break;
+          case "a":
+            setTool("arrow");
+            break;
+          case "l":
+            setTool("line");
+            break;
+          case "p":
+            setTool("pencil");
+            break;
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, selectedShapeId, deleteShape]);
+
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) =>
+    (changes: NodeChange[]) => {
+      const isSignificant = changes.some(
+        (c) => c.type === "position" || c.type === "remove" || c.type === "add"
+      );
+      if (isSignificant) saveToHistory();
       setNodes(
         (nds) => applyNodeChanges(changes, nds) as Node<CustomNodeData>[]
-      ),
-    []
+      );
+    },
+    [saveToHistory]
   );
 
   const deleteEdge = useCallback((id: string) => {
@@ -105,64 +217,73 @@ export function FlowBuilder() {
   }, []);
 
   const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) =>
+    (changes: EdgeChange[]) => {
+      saveToHistory();
       setEdges((eds) => {
         const newEdges = applyEdgeChanges(changes, eds);
-        // hide edge action UI when edges change (e.g. deletion via other means)
         setEdgeAction(null);
         return newEdges;
-      }),
-    []
+      });
+    },
+    [saveToHistory]
   );
 
   const onConnect = useCallback(
-    (params: Connection) =>
-      setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
-    []
+    (params: Connection) => {
+      saveToHistory();
+      setEdges((eds) => addEdge({ ...params, animated: true }, eds));
+    },
+    [saveToHistory]
   );
 
   const onNodeClick = useCallback((_event: any, node: Node<CustomNodeData>) => {
     setSelectedNode(node);
+    setSelectedShapeId(null);
   }, []);
 
   const onEdgeClick = useCallback((event: any, edge: Edge) => {
-    // prevent other handlers from reacting to this click
     event?.stopPropagation?.();
     const x = event.clientX ?? 0;
     const y = event.clientY ?? 0;
     setEdgeAction({ id: edge.id ?? `${edge.source}-${edge.target}`, x, y });
+    setSelectedShapeId(null);
   }, []);
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
     setEdgeAction(null);
+    setSelectedShapeId(null);
   }, []);
 
-  const addNode = useCallback((type: NodeType) => {
-    const id = `${type}-${Date.now()}`;
-    const labels: Record<NodeType, string> = {
-      start: "Start",
-      process: "Process",
-      decision: "Decision?",
-      end: "End",
-      custom: "Custom Node",
-    };
+  const addNode = useCallback(
+    (type: NodeType) => {
+      const id = `${type}-${Date.now()}`;
+      const labels: Record<NodeType, string> = {
+        start: "Start",
+        process: "Process",
+        decision: "Decision?",
+        end: "End",
+        custom: "Custom Node",
+      };
 
-    const newNode: Node<CustomNodeData> = {
-      id,
-      type,
-      position: {
-        x: Math.random() * 400 + 100,
-        y: Math.random() * 400 + 100,
-      },
-      data: {
-        label: labels[type],
+      const newNode: Node<CustomNodeData> = {
+        id,
         type,
-      },
-    };
+        position: {
+          x: Math.random() * 400 + 100,
+          y: Math.random() * 400 + 100,
+        },
+        data: {
+          label: labels[type],
+          type,
+        },
+      };
 
-    setNodes((nds) => [...nds, newNode]);
-  }, []);
+      saveToHistory();
+      setNodes((nds) => [...nds, newNode]);
+    },
+    [saveToHistory]
+  );
 
   const updateNode = useCallback(
     (id: string, data: Partial<CustomNodeData>) => {
@@ -197,13 +318,15 @@ export function FlowBuilder() {
       onContinue: () => {
         setNodes([]);
         setEdges([]);
+        setShapes([]);
         setSelectedNode(null);
+        setSelectedShapeId(null);
       },
     });
   }, []);
 
   const handleSave = useCallback(() => {
-    const state: FlowState = { nodes, edges };
+    const state: FlowState = { nodes, edges, shapes };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     setAlertDialog({
       open: true,
@@ -211,17 +334,22 @@ export function FlowBuilder() {
       description: "Your flow has been saved successfully!",
       showCancel: false,
     });
-  }, [nodes, edges]);
+  }, [nodes, edges, shapes]);
 
   const handleLoad = useCallback(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        const { nodes: savedNodes, edges: savedEdges }: FlowState =
-          JSON.parse(saved);
+        const {
+          nodes: savedNodes,
+          edges: savedEdges,
+          shapes: savedShapes = [],
+        }: FlowState = JSON.parse(saved);
         setNodes(savedNodes);
         setEdges(savedEdges);
+        setShapes(savedShapes);
         setSelectedNode(null);
+        setSelectedShapeId(null);
         setAlertDialog({
           open: true,
           title: "Flow Loaded",
@@ -263,18 +391,8 @@ export function FlowBuilder() {
         proOptions={{ hideAttribution: true }}
         fitView
         className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
-      >
-        {/* <Background color="#94a3b8" gap={16} /> */}
-        <MiniMap
-          nodeStrokeWidth={3}
-          zoomable
-          pannable
-          className="!bg-white/80 dark:!bg-gray-800/80 !border-2 !border-gray-300 dark:!border-gray-600 !rounded-lg"
-        />
-        {/* <Controls className="!bg-white/80 dark:!bg-gray-800/80 !border-2 !border-gray-300 dark:!border-gray-600 !rounded-lg" /> */}
-      </ReactFlow>
+      />
 
-      {/* Edge action (trash) button shown when an edge is clicked */}
       {edgeAction && (
         <div
           style={{
@@ -282,7 +400,7 @@ export function FlowBuilder() {
             left: edgeAction.x,
             top: edgeAction.y,
             transform: "translate(-50%, -50%)",
-            zIndex: 60,
+            zIndex: 90,
           }}
         >
           <Button
@@ -298,7 +416,7 @@ export function FlowBuilder() {
         </div>
       )}
 
-      <div className="fixed top-4 right-4 z-50 flex gap-2">
+      <div className="fixed top-4 right-4 z-80 flex gap-2">
         <Button
           onClick={handleSave}
           className="border hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -317,8 +435,27 @@ export function FlowBuilder() {
         </Button>
       </div>
 
+      <RoughCanvasLayer
+        mode={tool}
+        onFinish={useCallback(() => setTool("none"), [])}
+        shapes={shapes}
+        onAddShape={useCallback(
+          (shape: Shape) => {
+            saveToHistory();
+            setShapes((prev) => [...prev, shape]);
+          },
+          [saveToHistory]
+        )}
+        selectedShapeId={selectedShapeId}
+        onSelectShape={setSelectedShapeId}
+        onUpdateShape={updateShape}
+        onDeleteShape={deleteShape}
+      />
+
       <BottomDock
         onAddNode={addNode}
+        tool={tool}
+        onSelectTool={setTool}
         onZoomIn={() => zoomIn({ duration: 300 })}
         onZoomOut={() => zoomOut({ duration: 300 })}
         onFitView={() => fitView({ duration: 300, padding: 0.2 })}
