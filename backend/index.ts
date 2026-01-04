@@ -7,7 +7,10 @@ import { serve } from "@hono/node-server";
 import dotenv from "dotenv";
 import path from "path";
 
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+// Only load .env in development
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+}
 
 const app = new Hono().basePath("/api");
 
