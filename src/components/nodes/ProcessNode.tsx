@@ -52,9 +52,9 @@ export default function ProcessNode({ id, data, selected }: ProcessNodeProps) {
             type: "process",
           });
         }}
-        className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-gray-100"
+        className="absolute -top-2 -right-2 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-gray-100 dark:hover:bg-gray-700"
       >
-        <Settings className="w-3 h-3 text-black" />
+        <Settings className="w-3 h-3 text-black dark:text-white" />
       </button>
 
       <Handle

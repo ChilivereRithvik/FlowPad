@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import RoughCanvasLayer from "./RoughCanvasLayer";
 import LeftDock from "@/components/LeftDock";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const nodeTypes = {
   start: StartNode,
@@ -465,7 +466,7 @@ export function FlowBuilder() {
         nodeTypes={nodeTypes}
         proOptions={{ hideAttribution: true }}
         fitView
-        className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
+        className="bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-none dark:bg-gray-900"
       />
 
       {edgeAction && (
@@ -508,6 +509,7 @@ export function FlowBuilder() {
           <Trash className="w-4 h-4" />
           Clear
         </Button>
+        <ThemeToggle />
       </div>
 
       {isEditingShape && (

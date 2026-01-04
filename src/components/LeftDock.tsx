@@ -63,7 +63,7 @@ export default function LeftDock({
           </div>
 
           {/* Stroke Width */}
-          {/* <div className="flex flex-col items-center gap-2 group">
+          <div className="flex flex-col items-center gap-2 group">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="relative h-24 w-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden cursor-pointer">
@@ -95,10 +95,10 @@ export default function LeftDock({
               </TooltipContent>
             </Tooltip>
             <Hash className="w-4 h-4 text-gray-400" />
-          </div> */}
+          </div>
 
           {/* Roughness */}
-          {/* <div className="flex flex-col items-center gap-2 group">
+          <div className="flex flex-col items-center gap-2 group">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="relative h-24 w-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden cursor-pointer">
@@ -130,7 +130,7 @@ export default function LeftDock({
               </TooltipContent>
             </Tooltip>
             <PencilIcon className="w-4 h-4 text-gray-400" />
-          </div> */}
+          </div>
 
           <div className="w-full h-px bg-gray-200 dark:bg-gray-700" />
 

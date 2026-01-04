@@ -176,10 +176,29 @@ export default function RoughCanvasLayer({
     const rc = rough.canvas(canvas);
     const getOptions = (selected: boolean, s?: Shape, seed = 1) => {
       const isPencil = s?.type === "pencil";
+      const isDark = document.documentElement.classList.contains("dark");
+
+      let stroke = s?.stroke;
+      // Handle color swapping for default black/white
+      if (isDark) {
+        if (
+          !stroke ||
+          stroke === "#000000" ||
+          stroke === "#1e293b" ||
+          stroke === "#334155"
+        ) {
+          stroke = "#ffffff";
+        } else if (stroke === "#ffffff") {
+          stroke = "#000000";
+        }
+      } else {
+        if (!stroke) {
+          stroke = isPencil ? "#334155" : "#1e293b";
+        }
+      }
+
       return {
-        stroke: selected
-          ? "#6366f1"
-          : s?.stroke || (isPencil ? "#334155" : "#1e293b"),
+        stroke: selected ? "#6366f1" : stroke,
         strokeWidth:
           (selected ? 3.5 : s?.strokeWidth || (isPencil ? 2.2 : 2)) / zoom,
         roughness: s?.roughness ?? (isPencil ? 0.4 : 1.2),
