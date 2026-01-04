@@ -77,7 +77,7 @@ export default function HomePage() {
         </div>
         <Button
           variant="outline"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/flow")}
           className="border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full px-6"
         >
           Launch Builder
@@ -110,7 +110,7 @@ export default function HomePage() {
           <div className="pt-8">
             <Button
               size="lg"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/flow")}
               className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:scale-105 active:scale-95 transition-all text-lg px-8 py-7 rounded-2xl shadow-2xl hover:shadow-blue-500/25"
             >
               Get Started for Free

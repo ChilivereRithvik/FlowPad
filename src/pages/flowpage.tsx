@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Home, Save, Trash } from "lucide-react";
+import { Home, Save, Trash, Layers } from "lucide-react";
 
 import { useState, useCallback, useEffect } from "react";
 
@@ -483,6 +483,20 @@ export function FlowBuilder() {
         className="bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-none dark:bg-gray-900"
       />
 
+      {nodes.length === 0 && shapes.length === 0 && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none z-0">
+          <div className="opacity-[0.1] dark:opacity-[0.05] flex flex-col items-center gap-2">
+            <div className="flex items-center gap-6">
+              <Layers className="w-24 h-24" />
+              <h1 className="text-8xl font-black tracking-tighter">FlowPad</h1>
+            </div>
+            <p className="text-xl font-medium">
+              Add a node or start drawing to begin
+            </p>
+          </div>
+        </div>
+      )}
+
       {edgeAction && (
         <div
           style={{
@@ -509,7 +523,7 @@ export function FlowBuilder() {
       <div className="fixed top-4 left-4 z-80">
         <Button
           variant="outline"
-          onClick={() => navigate("/home")}
+          onClick={() => navigate("/")}
           className="border hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2"
         >
           <Home className="w-4 h-4" />

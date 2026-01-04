@@ -4,15 +4,16 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { FlowBuilder } from "./pages/flowpage";
 import HomePage from "./pages/HomePage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
   return (
     <Router>
       <div className="w-screen h-screen">
         <Routes>
-          <Route path="/home" element={<HomePage />} />
+          <Route path="/" element={<HomePage />} />
           <Route
-            path="/"
+            path="/flow"
             element={
               <div className="w-full h-full">
                 <ReactFlowProvider>
@@ -21,6 +22,7 @@ export default function App() {
               </div>
             }
           />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
     </Router>
