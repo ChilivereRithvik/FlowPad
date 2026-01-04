@@ -1,17 +1,18 @@
 {
   "version": 2,
-  "rewrites": [
+  "functions": {
+    "backend/index.ts": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "routes": [
     {
-      "source": "/api",
-      "destination": "/backend/index.ts"
+      "src": "/api/(.*)",
+      "dest": "backend/index.ts"
     },
     {
-      "source": "/api/(.*)",
-      "destination": "/backend/index.ts"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
