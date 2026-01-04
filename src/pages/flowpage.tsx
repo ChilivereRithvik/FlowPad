@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Home, Save, Trash, Layers, Info } from "lucide-react";
+import { Home, Save, Trash, Layers, Info, LogOut } from "lucide-react";
 
 import { useState, useCallback, useEffect } from "react";
 
@@ -46,6 +46,7 @@ import RoughCanvasLayer from "./RoughCanvasLayer";
 import LeftDock from "@/components/LeftDock";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const nodeTypes = {
   start: StartNode,
@@ -75,6 +76,17 @@ function getInitialState(): FlowState {
 
 export function FlowBuilder() {
   const navigate = useNavigate();
+  const {
+    signOut,
+    session: { data: session, isPending },
+  } = useAuth();
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      navigate("/");
+    }
+  }, [session, isPending, navigate]);
+
   const [nodes, setNodes] = useState<Node<CustomNodeData>[]>(
     () => getInitialState().nodes
   );
@@ -563,6 +575,17 @@ export function FlowBuilder() {
             setTheme((prev) => (prev === "light" ? "dark" : "light"))
           }
         />
+        <Button
+          variant="outline"
+          onClick={async () => {
+            await signOut();
+            navigate("/");
+          }}
+          className="border hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 cursor-pointer"
+          title="Logout"
+        >
+          <LogOut className="w-4 h-4" />
+        </Button>
       </div>
 
       {isEditingShape && (

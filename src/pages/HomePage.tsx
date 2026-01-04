@@ -10,9 +10,21 @@ import {
   Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import bannerImg from "@/assets/banner.png";
+
+import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const {
+    signOut,
+    session: { data: session },
+  } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   const features = [
     {
@@ -75,13 +87,43 @@ export default function HomePage() {
             FlowPad
           </span>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => navigate("/flow")}
-          className="border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full px-6"
-        >
-          Launch Builder
-        </Button>
+        <div className="flex gap-2">
+          {session ? (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/flow")}
+                className="border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full px-6"
+              >
+                Go to Flow
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className="text-slate-600 dark:text-slate-400 hover:text-red-500 rounded-full"
+              >
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/login")}
+                className="text-slate-600 dark:text-slate-400 font-bold"
+              >
+                Sign In
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/signup")}
+                className="border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full px-6 font-bold"
+              >
+                Get Started
+              </Button>
+            </div>
+          )}
+        </div>
       </nav>
 
       <main className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
@@ -108,14 +150,43 @@ export default function HomePage() {
           </p>
 
           <div className="pt-8">
-            <Button
-              size="lg"
-              onClick={() => navigate("/flow")}
-              className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:scale-105 active:scale-95 transition-all text-lg px-8 py-7 rounded-2xl shadow-2xl hover:shadow-blue-500/25"
-            >
-              Get Started for Free
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
+            {session ? (
+              <Button
+                size="lg"
+                onClick={() => navigate("/flow")}
+                className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:scale-105 active:scale-95 transition-all text-lg px-8 py-7 rounded-2xl shadow-2xl hover:shadow-blue-500/25"
+              >
+                Go to Builder
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                onClick={() => navigate("/signup")}
+                className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:scale-105 active:scale-95 transition-all text-lg px-8 py-7 rounded-2xl shadow-2xl hover:shadow-blue-500/25"
+              >
+                Get Started for Free
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Banner Mockup */}
+        <div className="mt-20 relative animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+          <div className="max-w-5xl mx-auto glass-panel p-4 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl relative group hover:scale-[1.01] transition-transform duration-500">
+            <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-400/5 rounded-[2rem] blur-xl -z-10 animate-pulse" />
+            <img
+              src={bannerImg}
+              alt="FlowPad Canvas"
+              className="w-full h-auto rounded-[1.8rem] border border-slate-100 dark:border-slate-800 shadow-inner"
+            />
+
+            {/* Decorative indicator */}
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 rounded-full border border-slate-200 dark:border-slate-800 shadow-lg text-xs font-bold text-slate-500">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
+              Live Canvas Environment
+            </div>
           </div>
         </div>
 
