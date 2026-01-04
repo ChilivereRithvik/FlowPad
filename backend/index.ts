@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { handle } from "hono/vercel";
+import { getRequestListener } from "@hono/node-server";
 import { auth } from "./auth.js";
 
 const app = new Hono();
@@ -27,4 +27,4 @@ app.get("/", (c) => c.json({ status: "alive", message: "FlowPad Backend" }));
 
 app.get("/api", (c) => c.text("🤑 I am alive!"));
 
-export default handle(app);
+export default getRequestListener(app.fetch);
