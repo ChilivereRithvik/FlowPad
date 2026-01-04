@@ -1,14 +1,16 @@
+export const runtime = "edge";
+
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { handle } from "hono/vercel";
 import { auth } from "./auth.js";
 
-const app = new Hono().basePath("/api");
+const app = new Hono();
 
 app.use(
   "*",
   cors({
-    origin: (origin) => origin || "",
+    origin: (origin) => origin ?? "*",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     exposeHeaders: ["Content-Length"],
@@ -17,10 +19,12 @@ app.use(
   })
 );
 
-app.on(["POST", "GET"], "/auth/*", (c) => {
+app.on(["POST", "GET"], "/api/auth/*", (c) => {
   return auth.handler(c.req.raw);
 });
 
-app.get("/", (c) => c.text("🤑 I am alive!"));
+app.get("/", (c) => c.json({ status: "alive", message: "FlowPad Backend" }));
+
+app.get("/api", (c) => c.text("🤑 I am alive!"));
 
 export default handle(app);
