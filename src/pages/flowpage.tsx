@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Save, Trash } from "lucide-react";
+import { Save, Trash, Home } from "lucide-react";
+
 import { useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   ReactFlow,
   applyNodeChanges,
@@ -71,6 +74,7 @@ function getInitialState(): FlowState {
 }
 
 export function FlowBuilder() {
+  const navigate = useNavigate();
   const [nodes, setNodes] = useState<Node<CustomNodeData>[]>(
     () => getInitialState().nodes
   );
@@ -501,6 +505,17 @@ export function FlowBuilder() {
           </Button>
         </div>
       )}
+      {/* 
+      <div className="fixed top-4 left-4 z-80">
+        <Button
+          variant="outline"
+          onClick={() => navigate("/")}
+          className="border hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2"
+        >
+          <Home className="w-4 h-4" />
+          <span>FlowPad</span>
+        </Button>
+      </div> */}
 
       <div className="fixed top-4 right-4 z-80 flex gap-2">
         <Button
