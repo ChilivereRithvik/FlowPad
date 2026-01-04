@@ -7,6 +7,8 @@ interface StartNodeProps {
 }
 
 export default function StartNode({ data, selected }: StartNodeProps) {
+  console.log(selected);
+
   return (
     <div className="bg-black px-3 py-1 rounded-sm gap-3">
       <div className="relative z-10 flex flex-col items-center gap-1">
