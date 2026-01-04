@@ -10,9 +10,9 @@ export default function CustomNode({ data, selected }: CustomNodeProps) {
   console.log(data);
   console.log(selected);
   return (
-    <div className="bg-black rounded-2xl p-4">
+    <div className="bg-black px-3 py-1 rounded-sm gap-3">
       <div className="relative z-10 flex flex-col items-center gap-2">
-        <span className="text-sm font-semibold text-white text-center">
+        <span className="text-xs font-semibold text-white text-center">
           {data.label}
         </span>
         {data.description && (
@@ -22,14 +22,14 @@ export default function CustomNode({ data, selected }: CustomNodeProps) {
         )}
       </div>
       <Handle
-        type="target"
+        type="source"
         position={Position.Right}
-        className="!w-3 !h-3 !bg-white !border-2 !border-gray-500"
+        className="!w-2 !h-2 !bg-white !border-2 !border-gray-500 "
       />
       <Handle
-        type="source"
+        type="target"
         position={Position.Left}
-        className="!w-3 !h-3 !bg-white !border-2 !border-gray-500"
+        className="!w-2 !h-2 !bg-white !border-2 !border-gray-500"
       />
     </div>
   );
