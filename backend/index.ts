@@ -32,7 +32,7 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => {
 
 app.get("/", (c) => c.json({ status: "alive", message: "FlowPad Backend" }));
 
-app.get("/api", async (c) => {
+app.get("/api", (c) => {
   return c.text("🤑 I am alive!");
 });
 
