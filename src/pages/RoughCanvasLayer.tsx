@@ -12,6 +12,7 @@ interface Props {
   onSelectShape: (id: string | null) => void;
   onUpdateShape: (id: string, updates: Partial<Shape>) => void;
   onDoubleClickShape: (id: string) => void;
+  theme: "light" | "dark";
 }
 
 const getSeed = (id: string | number) => {
@@ -149,6 +150,7 @@ export default function RoughCanvasLayer({
   onSelectShape,
   onUpdateShape,
   onDoubleClickShape,
+  theme,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const start = useRef<{ x: number; y: number } | null>(null);
@@ -176,7 +178,7 @@ export default function RoughCanvasLayer({
     const rc = rough.canvas(canvas);
     const getOptions = (selected: boolean, s?: Shape, seed = 1) => {
       const isPencil = s?.type === "pencil";
-      const isDark = document.documentElement.classList.contains("dark");
+      const isDark = theme === "dark";
 
       let stroke = s?.stroke;
       // Handle color swapping for default black/white
@@ -357,7 +359,7 @@ export default function RoughCanvasLayer({
 
   useEffect(() => {
     draw();
-  }, [shapes, currentPreview, vX, vY, zoom, selectedShapeId]);
+  }, [shapes, currentPreview, vX, vY, zoom, selectedShapeId, theme]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -375,7 +377,8 @@ export default function RoughCanvasLayer({
 
     const onPointerDown = (e: PointerEvent) => {
       // Ignore if clicking UI elements
-      if ((e.target as HTMLElement).closest(".z-80, .z-90, button")) return;
+      if ((e.target as HTMLElement).closest(".z-50, .z-80, .z-90, button"))
+        return;
 
       const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
 
@@ -634,6 +637,7 @@ export default function RoughCanvasLayer({
     onSelectShape,
     onUpdateShape,
     onDoubleClickShape,
+    theme,
   ]);
 
   return (

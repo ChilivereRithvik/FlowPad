@@ -78,7 +78,7 @@ export default function LeftDock({
                         strokeWidth: parseFloat(e.target.value),
                       })
                     }
-                    className="absolute inset-0 w-24 h-1.5 -rotate-90 origin-center translate-y-[45px] -translate-x-[42px] opacity-0 cursor-pointer z-10"
+                    className="absolute top-1/2 left-1/2 w-24 h-6 -rotate-90 -translate-x-1/2 -translate-y-1/2 opacity-0 cursor-pointer z-10"
                   />
                   <div
                     className="absolute bottom-0 w-full bg-blue-500 transition-all"
@@ -113,7 +113,7 @@ export default function LeftDock({
                         roughness: parseFloat(e.target.value),
                       })
                     }
-                    className="absolute inset-0 w-24 h-1.5 -rotate-90 origin-center translate-y-[45px] -translate-x-[42px] opacity-0 cursor-pointer z-10"
+                    className="absolute top-1/2 left-1/2 w-24 h-6 -rotate-90 -translate-x-1/2 -translate-y-1/2 opacity-0 cursor-pointer z-10"
                   />
                   <div
                     className="absolute bottom-0 w-full bg-amber-500 transition-all"

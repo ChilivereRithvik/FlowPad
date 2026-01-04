@@ -104,6 +104,16 @@ export function FlowBuilder() {
     description: "",
     showCancel: true,
   });
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("theme") as "light" | "dark" | null;
+      if (saved) return saved;
+      return document.documentElement.classList.contains("dark")
+        ? "dark"
+        : "light";
+    }
+    return "light";
+  });
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   // History for undo/redo
@@ -509,7 +519,12 @@ export function FlowBuilder() {
           <Trash className="w-4 h-4" />
           Clear
         </Button>
-        <ThemeToggle />
+        <ThemeToggle
+          theme={theme}
+          onToggle={() =>
+            setTheme((prev) => (prev === "light" ? "dark" : "light"))
+          }
+        />
       </div>
 
       {isEditingShape && (
@@ -543,6 +558,7 @@ export function FlowBuilder() {
             setIsEditingShape(false);
           }
         }}
+        theme={theme}
       />
 
       <BottomDock
