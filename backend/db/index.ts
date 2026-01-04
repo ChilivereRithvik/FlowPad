@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import pg from "pg";
-import * as schema from "./schema";
+import * as schema from "./schema.js";
 import dotenv from "dotenv";
 import path from "path";
 // Only load .env in development
