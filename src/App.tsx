@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Save, Trash } from "lucide-react";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -54,12 +54,32 @@ const initialEdges: Edge[] = [];
 
 const STORAGE_KEY = "flowpad-state";
 
+function getInitialState(): FlowState {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (error) {
+      console.error("Failed to load saved flow:", error);
+    }
+  }
+  return { nodes: initialNodes, edges: initialEdges };
+}
+
 function FlowBuilder() {
-  const [nodes, setNodes] = useState<Node<CustomNodeData>[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [nodes, setNodes] = useState<Node<CustomNodeData>[]>(
+    () => getInitialState().nodes
+  );
+  const [edges, setEdges] = useState<Edge[]>(() => getInitialState().edges);
   const [selectedNode, setSelectedNode] = useState<Node<CustomNodeData> | null>(
     null
   );
+  // track an edge click action (id + click position)
+  const [edgeAction, setEdgeAction] = useState<{
+    id: string;
+    x: number;
+    y: number;
+  } | null>(null);
   const [alertDialog, setAlertDialog] = useState<{
     open: boolean;
     title: string;
@@ -74,21 +94,6 @@ function FlowBuilder() {
   });
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
-  // Load saved flow on mount
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const { nodes: savedNodes, edges: savedEdges }: FlowState =
-          JSON.parse(saved);
-        setNodes(savedNodes);
-        setEdges(savedEdges);
-      } catch (error) {
-        console.error("Failed to load saved flow:", error);
-      }
-    }
-  }, []);
-
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
       setNodes(
@@ -97,9 +102,19 @@ function FlowBuilder() {
     []
   );
 
+  const deleteEdge = useCallback((id: string) => {
+    setEdges((eds) => eds.filter((edge) => edge.id !== id));
+    setEdgeAction(null);
+  }, []);
+
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) =>
-      setEdges((eds) => applyEdgeChanges(changes, eds)),
+      setEdges((eds) => {
+        const newEdges = applyEdgeChanges(changes, eds);
+        // hide edge action UI when edges change (e.g. deletion via other means)
+        setEdgeAction(null);
+        return newEdges;
+      }),
     []
   );
 
@@ -113,8 +128,17 @@ function FlowBuilder() {
     setSelectedNode(node);
   }, []);
 
+  const onEdgeClick = useCallback((event: any, edge: Edge) => {
+    // prevent other handlers from reacting to this click
+    event?.stopPropagation?.();
+    const x = event.clientX ?? 0;
+    const y = event.clientY ?? 0;
+    setEdgeAction({ id: edge.id ?? `${edge.source}-${edge.target}`, x, y });
+  }, []);
+
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
+    setEdgeAction(null);
   }, []);
 
   const addNode = useCallback((type: NodeType) => {
@@ -235,6 +259,7 @@ function FlowBuilder() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onEdgeClick={onEdgeClick}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
@@ -251,6 +276,30 @@ function FlowBuilder() {
         />
         {/* <Controls className="!bg-white/80 dark:!bg-gray-800/80 !border-2 !border-gray-300 dark:!border-gray-600 !rounded-lg" /> */}
       </ReactFlow>
+
+      {/* Edge action (trash) button shown when an edge is clicked */}
+      {edgeAction && (
+        <div
+          style={{
+            position: "fixed",
+            left: edgeAction.x,
+            top: edgeAction.y,
+            transform: "translate(-50%, -50%)",
+            zIndex: 60,
+          }}
+        >
+          <Button
+            onClick={() => {
+              deleteEdge(edgeAction.id);
+              setEdgeAction(null);
+            }}
+            className="bg-red-400 hover:bg-red-500 hover:text-white border-none text-white"
+            variant="outline"
+          >
+            <Trash className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
 
       <div className="fixed top-4 right-4 z-50 flex gap-2">
         <Button
