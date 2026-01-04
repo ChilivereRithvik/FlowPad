@@ -41,6 +41,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import RoughCanvasLayer from "./RoughCanvasLayer";
+import LeftDock from "@/components/LeftDock";
 
 const nodeTypes = {
   start: StartNode,
@@ -83,6 +84,7 @@ export function FlowBuilder() {
     null
   );
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [isEditingShape, setIsEditingShape] = useState(false);
   const [tool, setTool] = useState<ToolMode>("none");
   const [edgeAction, setEdgeAction] = useState<{
     id: string;
@@ -144,6 +146,7 @@ export function FlowBuilder() {
       saveToHistory();
       setShapes((prev) => prev.filter((s) => s.id !== id));
       setSelectedShapeId(null);
+      setIsEditingShape(false);
     },
     [saveToHistory]
   );
@@ -242,6 +245,7 @@ export function FlowBuilder() {
   const onNodeClick = useCallback((_event: any, node: Node<CustomNodeData>) => {
     setSelectedNode(node);
     setSelectedShapeId(null);
+    setIsEditingShape(false);
   }, []);
 
   const onSelectionChange = useCallback(
@@ -284,12 +288,14 @@ export function FlowBuilder() {
     const y = event.clientY ?? 0;
     setEdgeAction({ id: edge.id ?? `${edge.source}-${edge.target}`, x, y });
     setSelectedShapeId(null);
+    setIsEditingShape(false);
   }, []);
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
     setEdgeAction(null);
     setSelectedShapeId(null);
+    setIsEditingShape(false);
   }, []);
 
   const addNode = useCallback(
@@ -386,6 +392,9 @@ export function FlowBuilder() {
         setShapes([]);
         setSelectedNode(null);
         setSelectedShapeId(null);
+        setIsEditingShape(false);
+        localStorage.removeItem(STORAGE_KEY);
+        setHistory([]); // Clear history as well
       },
     });
   }, []);
@@ -501,6 +510,15 @@ export function FlowBuilder() {
         </Button>
       </div>
 
+      {isEditingShape && (
+        <LeftDock
+          selectedShape={shapes.find((s) => s.id === selectedShapeId) || null}
+          onUpdateShape={updateShape}
+          onDeleteShape={deleteShape}
+          onClose={() => setIsEditingShape(false)}
+        />
+      )}
+
       <RoughCanvasLayer
         mode={tool}
         onFinish={useCallback(() => setTool("none"), [])}
@@ -515,7 +533,14 @@ export function FlowBuilder() {
         selectedShapeId={selectedShapeId}
         onSelectShape={setSelectedShapeId}
         onUpdateShape={updateShape}
-        onDeleteShape={deleteShape}
+        onDoubleClickShape={(id) => {
+          if (id) {
+            setSelectedShapeId(id);
+            setIsEditingShape(true);
+          } else {
+            setIsEditingShape(false);
+          }
+        }}
       />
 
       <BottomDock

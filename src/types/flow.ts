@@ -26,6 +26,10 @@ export interface Shape {
   width: number;
   height: number;
   points?: { x: number; y: number }[]; // For pencil/freehand
+  stroke?: string;
+  strokeWidth?: number;
+  roughness?: number;
+  opacity?: number;
 }
 
 export interface FlowState {

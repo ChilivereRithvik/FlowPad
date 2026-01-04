@@ -11,7 +11,7 @@ interface Props {
   selectedShapeId: string | null;
   onSelectShape: (id: string | null) => void;
   onUpdateShape: (id: string, updates: Partial<Shape>) => void;
-  onDeleteShape: (id: string) => void;
+  onDoubleClickShape: (id: string) => void;
 }
 
 const getSeed = (id: string | number) => {
@@ -24,40 +24,115 @@ const getSeed = (id: string | number) => {
   return Math.abs(hash);
 };
 
+const isPointOnLine = (
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  threshold: number
+) => {
+  const lenSq = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+  if (lenSq === 0)
+    return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2) < threshold;
+  let t = Math.max(
+    0,
+    Math.min(1, ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / lenSq)
+  );
+  return (
+    Math.sqrt(
+      (px - (x1 + t * (x2 - x1))) ** 2 + (py - (y1 + t * (y2 - y1))) ** 2
+    ) < threshold
+  );
+};
+
+const isPointInHandle = (
+  x: number,
+  y: number,
+  s: Shape,
+  zoom: number
+): string | null => {
+  const size = 12 / zoom;
+  const hSize = size / 2;
+  const handles = [
+    { type: "nw", x: s.x, y: s.y },
+    { type: "n", x: s.x + s.width / 2, y: s.y },
+    { type: "ne", x: s.x + s.width, y: s.y },
+    { type: "w", x: s.x, y: s.y + s.height / 2 },
+    { type: "e", x: s.x + s.width, y: s.y + s.height / 2 },
+    { type: "sw", x: s.x, y: s.y + s.height },
+    { type: "s", x: s.x + s.width / 2, y: s.y + s.height },
+    { type: "se", x: s.x + s.width, y: s.y + s.height },
+    { type: "move", x: s.x + 15, y: s.y + 15 }, // Move icon inside top-left
+  ];
+
+  for (const h of handles) {
+    if (
+      x >= h.x - hSize &&
+      x <= h.x + hSize &&
+      y >= h.y - hSize &&
+      y <= h.y + hSize
+    )
+      return h.type;
+  }
+  return null;
+};
+
 const isPointInShape = (
   x: number,
   y: number,
   s: Shape,
   zoom: number
 ): boolean => {
-  const threshold = 10 / zoom;
-  if (s.type === "rectangle")
-    return x >= s.x && x <= s.x + s.width && y >= s.y && y <= s.y + s.height;
+  const threshold = 12 / zoom;
+  if (s.type === "rectangle") {
+    return (
+      isPointOnLine(x, y, s.x, s.y, s.x + s.width, s.y, threshold) ||
+      isPointOnLine(
+        x,
+        y,
+        s.x + s.width,
+        s.y,
+        s.x + s.width,
+        s.y + s.height,
+        threshold
+      ) ||
+      isPointOnLine(
+        x,
+        y,
+        s.x + s.width,
+        s.y + s.height,
+        s.x,
+        s.y + s.height,
+        threshold
+      ) ||
+      isPointOnLine(x, y, s.x, s.y + s.height, s.x, s.y, threshold)
+    );
+  }
   if (s.type === "circle") {
     const cx = s.x + s.width / 2,
       cy = s.y + s.height / 2,
       r = Math.min(s.width, s.height) / 2;
-    return Math.sqrt((x - cx) ** 2 + (y - cy) ** 2) <= r + threshold;
+    const d = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+    return Math.abs(d - r) <= threshold;
   }
-  if (s.type === "triangle")
-    return x >= s.x && x <= s.x + s.width && y >= s.y && y <= s.y + s.height;
+  if (s.type === "triangle") {
+    const p1 = { x: s.x + s.width / 2, y: s.y };
+    const p2 = { x: s.x, y: s.y + s.height };
+    const p3 = { x: s.x + s.width, y: s.y + s.height };
+    return (
+      isPointOnLine(x, y, p1.x, p1.y, p2.x, p2.y, threshold) ||
+      isPointOnLine(x, y, p2.x, p2.y, p3.x, p3.y, threshold) ||
+      isPointOnLine(x, y, p3.x, p3.y, p1.x, p1.y, threshold)
+    );
+  }
   if (s.type === "line" || s.type === "arrow") {
     const x1 = s.x,
       y1 = s.y,
       x2 = s.x + s.width,
       y2 = s.y + s.height;
-    const lenSq = (x2 - x1) ** 2 + (y2 - y1) ** 2;
-    if (lenSq === 0)
-      return Math.sqrt((x - x1) ** 2 + (y - y1) ** 2) < threshold;
-    let t = Math.max(
-      0,
-      Math.min(1, ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / lenSq)
-    );
-    return (
-      Math.sqrt(
-        (x - (x1 + t * (x2 - x1))) ** 2 + (y - (y1 + t * (y2 - y1))) ** 2
-      ) < threshold
-    );
+    return isPointOnLine(x, y, x1, y1, x2, y2, threshold);
   }
   if (s.type === "pencil" && s.points)
     return s.points.some(
@@ -73,12 +148,15 @@ export default function RoughCanvasLayer({
   selectedShapeId,
   onSelectShape,
   onUpdateShape,
+  onDoubleClickShape,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const start = useRef<{ x: number; y: number } | null>(null);
   const currentPoints = useRef<{ x: number; y: number }[]>([]);
   const dragOffset = useRef<{ x: number; y: number } | null>(null);
+  const resizeType = useRef<string | null>(null);
   const isDragging = useRef<boolean>(false);
+  const isResizing = useRef<boolean>(false);
 
   const { x: vX, y: vY, zoom } = useViewport();
   const { screenToFlowPosition } = useReactFlow();
@@ -96,16 +174,22 @@ export default function RoughCanvasLayer({
     ctx.setTransform(zoom * dpr, 0, 0, zoom * dpr, vX * dpr, vY * dpr);
 
     const rc = rough.canvas(canvas);
-    const getOptions = (selected: boolean, isPencil = false, seed = 1) => ({
-      stroke: selected ? "#6366f1" : isPencil ? "#334155" : "#1e293b",
-      strokeWidth: (selected ? 3.5 : isPencil ? 2.2 : 2) / zoom,
-      roughness: isPencil ? 0.4 : 1.2,
-      seed,
-    });
+    const getOptions = (selected: boolean, s?: Shape, seed = 1) => {
+      const isPencil = s?.type === "pencil";
+      return {
+        stroke: selected
+          ? "#6366f1"
+          : s?.stroke || (isPencil ? "#334155" : "#1e293b"),
+        strokeWidth:
+          (selected ? 3.5 : s?.strokeWidth || (isPencil ? 2.2 : 2)) / zoom,
+        roughness: s?.roughness ?? (isPencil ? 0.4 : 1.2),
+        seed,
+      };
+    };
 
     shapes.forEach((s) => {
       const selected = s.id === selectedShapeId;
-      const opts = getOptions(selected, s.type === "pencil", getSeed(s.id));
+      const opts = getOptions(selected, s, getSeed(s.id));
       try {
         if (s.type === "rectangle")
           rc.rectangle(s.x, s.y, s.width, s.height, opts);
@@ -150,6 +234,57 @@ export default function RoughCanvasLayer({
             s.points.map((p) => [p.x, p.y]),
             opts
           );
+
+        // Draw selection handles if selected
+        if (selected) {
+          const hSize = 10 / zoom;
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#6366f1";
+          ctx.lineWidth = 2 / zoom;
+
+          const handles = [
+            { x: s.x, y: s.y },
+            { type: "n", x: s.x + s.width / 2, y: s.y },
+            { x: s.x + s.width, y: s.y },
+            { x: s.x, y: s.y + s.height / 2 },
+            { x: s.x + s.width, y: s.y + s.height / 2 },
+            { x: s.x, y: s.y + s.height },
+            { x: s.x + s.width / 2, y: s.y + s.height },
+            { x: s.x + s.width, y: s.y + s.height },
+          ];
+
+          handles.forEach((h) => {
+            ctx.beginPath();
+            ctx.arc(h.x, h.y, hSize / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          });
+
+          // Draw Move icon in top-left
+          const mx = s.x + 15;
+          const my = s.y + 15;
+          const mSize = 18 / zoom;
+          ctx.beginPath();
+          ctx.arc(mx, my, (mSize + 4) / 2, 0, Math.PI * 2);
+          ctx.fillStyle = "#6366f1";
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.5 / zoom;
+
+          // Move icon symbol (cross arrows)
+          ctx.beginPath();
+          ctx.moveTo(mx - mSize / 4, my);
+          ctx.lineTo(mx + mSize / 4, my);
+          ctx.moveTo(mx, my - mSize / 4);
+          ctx.lineTo(mx, my + mSize / 4);
+          ctx.stroke();
+
+          // Draw bounding box
+          ctx.setLineDash([5 / zoom, 5 / zoom]);
+          ctx.strokeStyle = "#6366f1";
+          ctx.strokeRect(s.x, s.y, s.width, s.height);
+          ctx.setLineDash([]);
+        }
       } catch (e) {
         console.error(e);
       }
@@ -157,7 +292,7 @@ export default function RoughCanvasLayer({
 
     if (currentPreview) {
       const opts = {
-        ...getOptions(false, mode === "pencil", 42), // Stable seed for preview
+        ...getOptions(false, { type: mode } as any, 42), // Stable seed for preview
         stroke: "#6366f1",
       };
       const { x, y, w, h, points } = currentPreview;
@@ -226,6 +361,35 @@ export default function RoughCanvasLayer({
       const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
 
       if (mode === "select" || mode === "none") {
+        // Check handles first if a shape is already selected
+        if (selectedShapeId) {
+          const selectedShape = shapes.find((s) => s.id === selectedShapeId);
+          if (selectedShape) {
+            const handle = isPointInHandle(
+              flowPos.x,
+              flowPos.y,
+              selectedShape,
+              zoom
+            );
+            if (handle) {
+              e.stopPropagation();
+              if (handle === "move") {
+                dragOffset.current = {
+                  x: flowPos.x - selectedShape.x,
+                  y: flowPos.y - selectedShape.y,
+                };
+                isDragging.current = true;
+                start.current = flowPos;
+                return;
+              }
+              resizeType.current = handle;
+              isResizing.current = true;
+              start.current = flowPos;
+              return;
+            }
+          }
+        }
+
         const hit = [...shapes]
           .reverse()
           .find((s) => isPointInShape(flowPos.x, flowPos.y, s, zoom));
@@ -234,13 +398,22 @@ export default function RoughCanvasLayer({
           // If we hit a shape, consume the event so it doesn't select nodes underneath
           e.stopPropagation();
           onSelectShape(hit.id);
-          dragOffset.current = { x: flowPos.x - hit.x, y: flowPos.y - hit.y };
-          isDragging.current = true;
+          onDoubleClickShape(hit.id); // Trigger dock on single click selection
+
+          // ONLY allow immediate dragging if the shape was ALREADY selected
+          // This prevents "accidental" moves while just trying to select something
+          if (hit.id === selectedShapeId) {
+            dragOffset.current = { x: flowPos.x - hit.x, y: flowPos.y - hit.y };
+            isDragging.current = true;
+          }
           start.current = flowPos;
         } else {
           // If we click empty space, deselect the shape but let the event fall through
           // to React Flow (which will handle node selection/deselection)
-          if (mode === "select") onSelectShape(null);
+          if (mode === "select") {
+            onSelectShape(null);
+            onDoubleClickShape(""); // Hacky way to reset editing state, better to pass a reset function
+          }
         }
         return;
       }
@@ -262,6 +435,39 @@ export default function RoughCanvasLayer({
 
     const onPointerMove = (e: PointerEvent) => {
       const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      if (isResizing.current && selectedShapeId) {
+        const shape = shapes.find((s) => s.id === selectedShapeId);
+        if (shape) {
+          const updates: Partial<Shape> = {};
+          if (resizeType.current?.includes("n")) {
+            updates.y = flowPos.y;
+            updates.height = shape.y + shape.height - flowPos.y;
+          }
+          if (resizeType.current?.includes("s")) {
+            updates.height = flowPos.y - shape.y;
+          }
+          if (resizeType.current?.includes("w")) {
+            updates.x = flowPos.x;
+            updates.width = shape.x + shape.width - flowPos.x;
+          }
+          if (resizeType.current?.includes("e")) {
+            updates.width = flowPos.x - shape.x;
+          }
+
+          if (
+            shape.type === "pencil" &&
+            shape.points &&
+            updates.width !== undefined &&
+            updates.height !== undefined
+          ) {
+            // For pencil, resizing is complex, let's keep it simple for now or skip
+          }
+
+          onUpdateShape(selectedShapeId, updates);
+        }
+        return;
+      }
+
       if (isDragging.current && selectedShapeId && dragOffset.current) {
         const shape = shapes.find((s) => s.id === selectedShapeId);
         if (shape) {
@@ -320,6 +526,12 @@ export default function RoughCanvasLayer({
     };
 
     const onPointerUp = (e: PointerEvent) => {
+      if (isResizing.current) {
+        isResizing.current = false;
+        resizeType.current = null;
+        start.current = null;
+        return;
+      }
       if (isDragging.current) {
         isDragging.current = false;
         start.current = null;
@@ -402,6 +614,7 @@ export default function RoughCanvasLayer({
     selectedShapeId,
     onSelectShape,
     onUpdateShape,
+    onDoubleClickShape,
   ]);
 
   return (
@@ -410,14 +623,25 @@ export default function RoughCanvasLayer({
       className="fixed inset-0 z-40"
       style={{
         pointerEvents:
-          mode !== "none" && mode !== "hand" && mode !== "select"
+          (mode !== "none" && mode !== "hand" && mode !== "select") ||
+          !!selectedShapeId
             ? "auto"
             : "none",
         cursor:
           mode === "hand"
             ? "grab"
             : mode === "select"
-            ? "default"
+            ? isResizing.current
+              ? resizeType.current?.includes("n") ||
+                resizeType.current?.includes("s")
+                ? "ns-resize"
+                : resizeType.current?.includes("e") ||
+                  resizeType.current?.includes("w")
+                ? "ew-resize"
+                : "nwse-resize"
+              : isDragging.current
+              ? "move"
+              : "default"
             : mode !== "none"
             ? "crosshair"
             : "default",
