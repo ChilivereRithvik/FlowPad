@@ -48,7 +48,7 @@ export default function BottomDock({
     <TooltipProvider delayDuration={200}>
       <div className="fixed bottom-0 left-0 right-0 z-80 pointer-events-none">
         <div className="max-w-6xl mx-auto pb-6 w-fit pointer-events-auto">
-          <div className="glass-panel rounded-sm p-1 w-fit border shadow-xl">
+          <div className="glass-panel rounded-sm p-1 w-fit border shadow-sm">
             <div className="flex items-center justify-center flex-wrap gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>

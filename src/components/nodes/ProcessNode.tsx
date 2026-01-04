@@ -1,15 +1,17 @@
 import { Handle, Position } from "@xyflow/react";
+import { Settings } from "lucide-react";
 import type { CustomNodeData } from "../../types/flow";
 
 interface ProcessNodeProps {
+  id: string;
   data: CustomNodeData;
   selected?: boolean;
 }
 
-export default function ProcessNode({ data, selected }: ProcessNodeProps) {
+export default function ProcessNode({ id, data, selected }: ProcessNodeProps) {
   return (
     <div
-      className={`relative px-6 py-4 min-w-[160px] rounded-xl bg-gradient-to-br from-blue-400 to-indigo-600 shadow-lg transition-all duration-300 ${
+      className={`group relative px-6 py-4 min-w-[160px] rounded-xl bg-gradient-to-br from-blue-400 to-indigo-600 shadow-lg transition-all duration-300 ${
         selected ? "ring-4 ring-blue-400 scale-105" : "hover:scale-102"
       }`}
     >
@@ -38,6 +40,23 @@ export default function ProcessNode({ data, selected }: ProcessNodeProps) {
           {data.label}
         </span>
       </div>
+
+      {/* Edit Icon - visible on hover */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          data.onEdit?.({
+            id,
+            data,
+            position: { x: 0, y: 0 },
+            type: "process",
+          });
+        }}
+        className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-gray-100"
+      >
+        <Settings className="w-3 h-3 text-black" />
+      </button>
+
       <Handle
         type="target"
         position={Position.Top}

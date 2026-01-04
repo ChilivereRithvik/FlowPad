@@ -79,6 +79,9 @@ export function FlowBuilder() {
   const [selectedNode, setSelectedNode] = useState<Node<CustomNodeData> | null>(
     null
   );
+  const [editingNode, setEditingNode] = useState<Node<CustomNodeData> | null>(
+    null
+  );
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [tool, setTool] = useState<ToolMode>("none");
   const [edgeAction, setEdgeAction] = useState<{
@@ -241,6 +244,40 @@ export function FlowBuilder() {
     setSelectedShapeId(null);
   }, []);
 
+  const onSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: { nodes: any[] }) => {
+      if (selectedNodes.length > 0) {
+        setSelectedShapeId(null);
+        if (selectedNodes.length === 1) {
+          setSelectedNode(selectedNodes[0]);
+        }
+      }
+    },
+    []
+  );
+
+  const handleEditNode = useCallback((node: Node<CustomNodeData>) => {
+    setEditingNode(node);
+  }, []);
+
+  // Sync onEdit to nodes (especially after loading from localStorage)
+  useEffect(() => {
+    setNodes((nds) => {
+      let changed = false;
+      const newNodes = nds.map((node) => {
+        if (!node.data.onEdit) {
+          changed = true;
+          return {
+            ...node,
+            data: { ...node.data, onEdit: handleEditNode },
+          };
+        }
+        return node;
+      });
+      return changed ? newNodes : nds;
+    });
+  }, [handleEditNode]);
+
   const onEdgeClick = useCallback((event: any, edge: Edge) => {
     event?.stopPropagation?.();
     const x = event.clientX ?? 0;
@@ -269,24 +306,47 @@ export function FlowBuilder() {
       const newNode: Node<CustomNodeData> = {
         id,
         type,
-        position: {
-          x: Math.random() * 400 + 100,
-          y: Math.random() * 400 + 100,
-        },
+        position: selectedNode
+          ? { x: selectedNode.position.x + 180, y: selectedNode.position.y }
+          : {
+              x: Math.random() * 400 + 100,
+              y: Math.random() * 400 + 100,
+            },
         data: {
           label: labels[type],
           type,
+          onEdit: handleEditNode,
         },
+        selected: true,
       };
 
       saveToHistory();
-      setNodes((nds) => [...nds, newNode]);
+      setNodes((nds) => [
+        ...nds.map((n) => ({ ...n, selected: false })),
+        newNode,
+      ]);
+      setSelectedNode(newNode);
+
+      if (selectedNode) {
+        setEdges((eds) =>
+          addEdge(
+            {
+              id: `e-${selectedNode.id}-${id}`,
+              source: selectedNode.id,
+              target: id,
+              animated: true,
+            },
+            eds
+          )
+        );
+      }
     },
-    [saveToHistory]
+    [saveToHistory, selectedNode, handleEditNode]
   );
 
   const updateNode = useCallback(
     (id: string, data: Partial<CustomNodeData>) => {
+      saveToHistory();
       setNodes((nds) =>
         nds.map((node) =>
           node.id === id ? { ...node, data: { ...node.data, ...data } } : node
@@ -297,8 +357,13 @@ export function FlowBuilder() {
           ? { ...current, data: { ...current.data, ...data } }
           : current
       );
+      setEditingNode((current) =>
+        current?.id === id
+          ? { ...current, data: { ...current.data, ...data } }
+          : current
+      );
     },
-    []
+    [saveToHistory]
   );
 
   const deleteNode = useCallback((id: string) => {
@@ -386,6 +451,7 @@ export function FlowBuilder() {
         onConnect={onConnect}
         onEdgeClick={onEdgeClick}
         onNodeClick={onNodeClick}
+        onSelectionChange={onSelectionChange}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         proOptions={{ hideAttribution: true }}
@@ -464,10 +530,10 @@ export function FlowBuilder() {
         onSave={handleSave}
       />
 
-      {selectedNode && (
+      {editingNode && (
         <PropertiesPanel
-          node={selectedNode}
-          onClose={() => setSelectedNode(null)}
+          node={editingNode}
+          onClose={() => setEditingNode(null)}
           onUpdate={updateNode}
           onDelete={deleteNode}
         />

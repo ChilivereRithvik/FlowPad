@@ -1,14 +1,20 @@
 import { Handle, Position } from "@xyflow/react";
+import { Settings } from "lucide-react";
 import type { CustomNodeData } from "../../types/flow";
 
 interface DecisionNodeProps {
+  id: string;
   data: CustomNodeData;
   selected?: boolean;
 }
 
-export default function DecisionNode({ data, selected }: DecisionNodeProps) {
+export default function DecisionNode({
+  id,
+  data,
+  selected,
+}: DecisionNodeProps) {
   return (
-    <div className="relative w-32 h-32 flex items-center justify-center">
+    <div className="group relative w-32 h-32 flex items-center justify-center">
       <div
         className={`absolute inset-0 rotate-45 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 shadow-lg transition-all duration-300 ${
           selected ? "ring-4 ring-blue-400 scale-110" : "hover:scale-105"
@@ -34,6 +40,23 @@ export default function DecisionNode({ data, selected }: DecisionNodeProps) {
           {data.label}
         </span>
       </div>
+
+      {/* Edit Icon - visible on hover */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          data.onEdit?.({
+            id,
+            data,
+            position: { x: 0, y: 0 },
+            type: "decision",
+          });
+        }}
+        className="absolute top-0 right-0 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-gray-100"
+      >
+        <Settings className="w-3 h-3 text-black" />
+      </button>
+
       <Handle
         type="target"
         position={Position.Top}
