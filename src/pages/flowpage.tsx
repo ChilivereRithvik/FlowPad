@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Save, Trash, Home } from "lucide-react";
+import { Save, Trash } from "lucide-react";
 
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 import {
   ReactFlow,
@@ -74,7 +73,6 @@ function getInitialState(): FlowState {
 }
 
 export function FlowBuilder() {
-  const navigate = useNavigate();
   const [nodes, setNodes] = useState<Node<CustomNodeData>[]>(
     () => getInitialState().nodes
   );
