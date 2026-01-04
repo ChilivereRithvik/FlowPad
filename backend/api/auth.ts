@@ -9,9 +9,13 @@ export const auth = betterAuth({
     provider: "pg",
     schema: schema,
   }),
+
+  // Configure email and password authentication
   emailAndPassword: {
     enabled: true,
   },
+
+  // Configure advanced options
   advanced: {
     cookiePrefix: "flowpad",
   },
