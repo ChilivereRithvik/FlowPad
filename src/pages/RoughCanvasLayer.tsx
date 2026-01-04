@@ -177,7 +177,9 @@ export default function RoughCanvasLayer({
     ctx.setTransform(zoom * dpr, 0, 0, zoom * dpr, vX * dpr, vY * dpr);
 
     const rc = rough.canvas(canvas);
-    const getOptions = (selected: boolean, s?: Shape, seed = 1) => {
+    const getOptions = (selected: boolean , s?: Shape, seed = 1) => {
+      console.log(selected);
+
       const isPencil = s?.type === "pencil";
       const isDark = theme === "dark";
 
