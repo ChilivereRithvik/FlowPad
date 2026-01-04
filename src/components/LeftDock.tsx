@@ -36,7 +36,7 @@ export default function LeftDock({
   return (
     <TooltipProvider delayDuration={200}>
       <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50 animate-in fade-in slide-in-from-left-4 duration-300">
-        <div className="glass-panel p-1 rounded-2xl shadow-sm flex flex-col gap-6 items-center w-16">
+        <div className="glass-panel p-1 rounded-2xl shadow-sm flex flex-col gap-1 items-center w-16">
           {/* Close Button */}
           <Button
             variant="ghost"

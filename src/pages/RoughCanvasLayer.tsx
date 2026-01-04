@@ -56,15 +56,16 @@ const isPointInHandle = (
 ): string | null => {
   const size = 12 / zoom;
   const hSize = size / 2;
+  const offset = 6 / zoom;
   const handles = [
-    { type: "nw", x: s.x, y: s.y },
-    { type: "n", x: s.x + s.width / 2, y: s.y },
-    { type: "ne", x: s.x + s.width, y: s.y },
-    { type: "w", x: s.x, y: s.y + s.height / 2 },
-    { type: "e", x: s.x + s.width, y: s.y + s.height / 2 },
-    { type: "sw", x: s.x, y: s.y + s.height },
-    { type: "s", x: s.x + s.width / 2, y: s.y + s.height },
-    { type: "se", x: s.x + s.width, y: s.y + s.height },
+    { type: "nw", x: s.x - offset, y: s.y - offset },
+    { type: "n", x: s.x + s.width / 2, y: s.y - offset },
+    { type: "ne", x: s.x + s.width + offset, y: s.y - offset },
+    { type: "w", x: s.x - offset, y: s.y + s.height / 2 },
+    { type: "e", x: s.x + s.width + offset, y: s.y + s.height / 2 },
+    { type: "sw", x: s.x - offset, y: s.y + s.height + offset },
+    { type: "s", x: s.x + s.width / 2, y: s.y + s.height + offset },
+    { type: "se", x: s.x + s.width + offset, y: s.y + s.height + offset },
     { type: "move", x: s.x + 15, y: s.y + 15 }, // Move icon inside top-left
   ];
 
@@ -200,9 +201,8 @@ export default function RoughCanvasLayer({
       }
 
       return {
-        stroke: selected ? "#6366f1" : stroke,
-        strokeWidth:
-          (selected ? 3.5 : s?.strokeWidth || (isPencil ? 2.2 : 2)) / zoom,
+        stroke: stroke,
+        strokeWidth: (s?.strokeWidth || (isPencil ? 2.2 : 2)) / zoom,
         roughness: s?.roughness ?? (isPencil ? 0.4 : 1.2),
         seed,
       };
@@ -258,20 +258,21 @@ export default function RoughCanvasLayer({
 
         // Draw selection handles if selected
         if (selected) {
-          const hSize = 10 / zoom;
+          const hSize = 8 / zoom;
+          const offset = 6 / zoom;
           ctx.fillStyle = "#ffffff";
           ctx.strokeStyle = "#6366f1";
-          ctx.lineWidth = 2 / zoom;
+          ctx.lineWidth = 1.5 / zoom;
 
           const handles = [
-            { x: s.x, y: s.y },
-            { type: "n", x: s.x + s.width / 2, y: s.y },
-            { x: s.x + s.width, y: s.y },
-            { x: s.x, y: s.y + s.height / 2 },
-            { x: s.x + s.width, y: s.y + s.height / 2 },
-            { x: s.x, y: s.y + s.height },
-            { x: s.x + s.width / 2, y: s.y + s.height },
-            { x: s.x + s.width, y: s.y + s.height },
+            { x: s.x - offset, y: s.y - offset },
+            { x: s.x + s.width / 2, y: s.y - offset },
+            { x: s.x + s.width + offset, y: s.y - offset },
+            { x: s.x - offset, y: s.y + s.height / 2 },
+            { x: s.x + s.width + offset, y: s.y + s.height / 2 },
+            { x: s.x - offset, y: s.y + s.height + offset },
+            { x: s.x + s.width / 2, y: s.y + s.height + offset },
+            { x: s.x + s.width + offset, y: s.y + s.height + offset },
           ];
 
           handles.forEach((h) => {
@@ -300,10 +301,17 @@ export default function RoughCanvasLayer({
           ctx.lineTo(mx, my + mSize / 4);
           ctx.stroke();
 
-          // Draw bounding box
-          ctx.setLineDash([5 / zoom, 5 / zoom]);
+          // Draw bounding box (offset outside)
+          const bOffset = 6 / zoom;
+          ctx.setLineDash([4 / zoom, 4 / zoom]);
           ctx.strokeStyle = "#6366f1";
-          ctx.strokeRect(s.x, s.y, s.width, s.height);
+          ctx.lineWidth = 1 / zoom;
+          ctx.strokeRect(
+            s.x - bOffset,
+            s.y - bOffset,
+            s.width + bOffset * 2,
+            s.height + bOffset * 2
+          );
           ctx.setLineDash([]);
         }
       } catch (e) {

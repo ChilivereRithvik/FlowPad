@@ -12,7 +12,7 @@ export default function CustomNode({ id, data, selected }: CustomNodeProps) {
   return (
     <div
       className={`group bg-black dark:bg-white px-3 py-1 rounded-sm gap-3 min-w-[100px] ${
-        selected ? "ring-2 ring-blue-500 " : ""
+        selected ? "bg-blue-500" : ""
       }`}
     >
       <div className="relative z-10 flex flex-col items-center gap-2">
