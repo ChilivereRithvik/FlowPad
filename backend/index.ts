@@ -1,33 +1,34 @@
-export const runtime = "nodejs";
-
-import { Hono } from "hono";
-import { getRequestListener } from "@hono/node-server";
+import express from "express";
+import cors from "cors";
+import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth.js";
+import { config } from "dotenv";
 
-const app = new Hono();
+config();
 
-/* ✅ Manual CORS for Node */
-app.use("*", async (c, next) => {
-  const origin = c.req.header("origin") ?? "*";
+const app = express();
 
-  c.header("Access-Control-Allow-Origin", origin);
-  c.header("Access-Control-Allow-Credentials", "true");
-  c.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  c.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://flow-pad.vercel.app",
+      process.env.FRONTEND_URL,
+    ].filter((url): url is string => !!url),
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
 
-  if (c.req.method === "OPTIONS") {
-    return c.body(null, 204);
-  }
+app.all("/api/auth/*", toNodeHandler(auth));
 
-  await next();
+app.get("/", (req, res) => {
+  res.json({ status: "alive", message: "FlowPad Backend" });
 });
 
-/* Auth */
-app.on(["POST", "GET"], "/api/auth/*", (c) => {
-  return auth.handler(c.req.raw);
+app.get("/api", (req, res) => {
+  res.send("🤑 I am alive!");
 });
 
-/* Health */
-app.get("/", (c) => c.json({ status: "alive", message: "FlowPad Backend" }));
-
-export default getRequestListener(app.fetch);
+export default app;
