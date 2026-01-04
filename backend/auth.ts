@@ -14,5 +14,8 @@ export const auth = betterAuth({
   advanced: {
     cookiePrefix: "flowpad",
   },
-  trustedOrigins: ["http://localhost:5173"],
+  trustedOrigins: [
+    "http://localhost:5173",
+    process.env.FRONTEND_URL || "https://flow-pad.vercel.app",
+  ],
 });
