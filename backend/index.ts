@@ -1,14 +1,11 @@
 import { Hono } from "hono";
-import { auth } from "./auth";
+import { auth } from "./auth.js";
 import { cors } from "hono/cors";
 import { handle } from "hono/vercel";
 
 import { serve } from "@hono/node-server";
 import dotenv from "dotenv";
 import path from "path";
-
-import { db } from "./db";
-import { sql } from "drizzle-orm";
 
 // Only load .env in development
 if (process.env.NODE_ENV !== "production") {
@@ -36,12 +33,7 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => {
 app.get("/", (c) => c.json({ status: "alive", message: "FlowPad Backend" }));
 
 app.get("/api", async (c) => {
-  try {
-    await db.execute(sql`SELECT 1`);
-    return c.text("🤑 I am alive! and DB is Connected 🤩");
-  } catch (error) {
-    return c.text("🤑 I am alive! but DB is Disconnected 😭");
-  }
+  return c.text("🤑 I am alive!");
 });
 
 const port = process.env.PORT || 8080;
