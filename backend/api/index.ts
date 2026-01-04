@@ -1,4 +1,4 @@
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 import { Hono } from "hono";
 import { cors } from "hono/cors";
