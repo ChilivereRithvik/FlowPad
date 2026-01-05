@@ -10,13 +10,13 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { Toaster } from "react-hot-toast";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { CookieConsent } from "./components/CookieConsent";
+// import { CookieConsent } from "./components/CookieConsent";
 
 export default function App() {
   return (
     <Router>
       <Toaster position="bottom-right" />
-      <CookieConsent />
+      {/* <CookieConsent /> */}
       <div className="w-screen h-screen">
         <Routes>
           <Route path="/" element={<HomePage />} />

@@ -1,9 +1,9 @@
-import { authClient } from "@/lib/auth-client";
-import { Navigate } from "react-router-dom";
+// import { authClient } from "@/lib/auth-client";
+// import { Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { data: session, isPending } = authClient.useSession();
+  // const { data: session } = authClient.useSession();
   const [isDelayed, setIsDelayed] = useState(true);
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, []);
 
-  if (isPending || isDelayed) {
+  if (isDelayed) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-950">
         <div className="relative">
@@ -30,9 +30,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!session) {
-    return <Navigate to="/login" replace />;
-  }
+  // if (!session) {
+  //   return <Navigate to="/login" replace />;
+  // }
 
   return <>{children}</>;
 }
