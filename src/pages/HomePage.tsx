@@ -155,7 +155,7 @@ export default function HomePage() {
             ) : (
               <Button
                 size="lg"
-                onClick={() => navigate("/signup")}
+                onClick={() => navigate("/flow")}
                 className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:scale-105 active:scale-95 transition-all text-lg px-8 py-7 rounded-2xl shadow-2xl hover:shadow-blue-500/25"
               >
                 Get Started for Free
