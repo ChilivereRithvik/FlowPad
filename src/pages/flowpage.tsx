@@ -83,7 +83,7 @@ export function FlowBuilder() {
 
   useEffect(() => {
     if (!isPending && !session) {
-      navigate("/");
+      // navigate("/");
     }
   }, [session, isPending, navigate]);
 
@@ -134,6 +134,7 @@ export function FlowBuilder() {
 
   // History for undo/redo
   const [_history, setHistory] = useState<FlowState[]>([]);
+  console.log("History length:", _history.length);
 
   const saveToHistory = useCallback(() => {
     setHistory((prev) => {
