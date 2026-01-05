@@ -108,15 +108,8 @@ export default function HomePage() {
           ) : (
             <div className="flex gap-2">
               <Button
-                variant="ghost"
-                onClick={() => navigate("/login")}
-                className="text-slate-600 dark:text-slate-400 font-bold"
-              >
-                Sign In
-              </Button>
-              <Button
                 variant="outline"
-                onClick={() => navigate("/signup")}
+                onClick={() => navigate("/flow")}
                 className="border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full px-6 font-bold"
               >
                 Get Started
